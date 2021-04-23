@@ -1,5 +1,11 @@
 /* eslint-disable no-underscore-dangle */
-import { createStore, combineReducers } from 'redux';
+import {
+  createStore,
+  combineReducers,
+  applyMiddleware,
+  compose,
+} from 'redux';
+import thunk from 'redux-thunk';
 import topSalesReducer from '../reducers/topSalesReducer';
 import categoriesReducer from '../reducers/categoriesReducer';
 import catalogReducer from '../reducers/catalogReducer';
@@ -18,9 +24,8 @@ const reducer = combineReducers({
   orderReducer,
 });
 
-const store = createStore(
-  reducer,
-  window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__(),
-);
+const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
+
+const store = createStore(reducer, composeEnhancers(applyMiddleware(thunk)));
 
 export default store;

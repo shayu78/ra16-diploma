@@ -6,7 +6,20 @@ import MessageDialog from '../MessageDialog/MessageDialog';
 import Categories from '../Categories/Categories';
 import SearchForm from '../SearchForm/SearchForm';
 import List from '../List/List';
-import fetchData, { fetchCompositeData } from '../../api/fetch';
+import {
+  catalogFirstPageRequest,
+  catalogFirstPageRequestSuccess,
+  catalogNextPageRequest,
+  catalogNextPageRequestSuccess,
+  catalogRequestFailure,
+} from '../../actions/catalogAction';
+import {
+  categoriesRequest,
+  categoriesRequestSuccess,
+  categoriesRequestFailure,
+} from '../../actions/categoriesAction';
+import { searchTextStatus } from '../../actions/searchAction';
+import { createCatalog, createCatalogAndCategories } from '../../api/requests';
 
 export default function Catalog(props) {
   const { searchSupport } = props;
@@ -14,36 +27,32 @@ export default function Catalog(props) {
   const catalogState = useSelector((state) => state.catalogReducer);
   const searchState = useSelector((state) => state.searchReducer);
   const dispatch = useDispatch();
-  const urlCategories = `${process.env.REACT_APP_SERVER_URL}categories`;
-  const urlCatalog = `${process.env.REACT_APP_SERVER_URL}items`;
-  const opts = { method: 'GET' };
 
   async function getCatalog(categoryId, offset = 0) {
-    if (offset) dispatch({ type: 'CATALOG_NEXTPAGE_REQUEST' });
-    else dispatch({ type: 'CATALOG_FIRSTPAGE_REQUEST' });
+    if (offset) dispatch(catalogNextPageRequest());
+    else dispatch(catalogFirstPageRequest());
     const searchText = searchSupport ? searchState.search : '';
-    fetchData(`${urlCatalog}?q=${searchText}&categoryId=${categoryId}&offset=${offset}`, opts).then((catalogData) => {
-      if (offset) dispatch({ type: 'CATALOG_NEXTPAGE_REQUEST_SUCCESS', payload: { catalogData } });
-      else dispatch({ type: 'CATALOG_FIRSTPAGE_REQUEST_SUCCESS', payload: { catalogData } });
+    createCatalog(searchText, categoryId, offset).then((catalogData) => {
+      if (offset) dispatch(catalogNextPageRequestSuccess(catalogData));
+      else dispatch(catalogFirstPageRequestSuccess(catalogData));
     }).catch((e) => {
       const detailedError = JSON.parse(e.message);
-      dispatch({ type: 'CATALOG_REQUEST_FAILURE', payload: { errorText: detailedError.text } });
+      dispatch(catalogRequestFailure(detailedError.text));
     });
   }
 
   async function getCatalogAndCategories(categoryId, offset = 0) {
-    dispatch({ type: 'CATEGORIES_REQUEST' });
-    dispatch({ type: 'CATALOG_FIRSTPAGE_REQUEST' });
+    dispatch(categoriesRequest());
+    dispatch(catalogFirstPageRequest());
     const searchText = searchSupport ? searchState.search : '';
-    fetchCompositeData([urlCategories,
-      `${urlCatalog}?q=${searchText}&categoryId=${categoryId}&offset=${offset}`], opts)
+    createCatalogAndCategories(searchText, categoryId, offset)
       .then(([categoriesData, catalogData]) => {
-        dispatch({ type: 'CATEGORIES_REQUEST_SUCCESS', payload: { categoriesData } });
-        dispatch({ type: 'CATALOG_FIRSTPAGE_REQUEST_SUCCESS', payload: { catalogData } });
+        dispatch(categoriesRequestSuccess(categoriesData));
+        dispatch(catalogFirstPageRequestSuccess(catalogData));
       }).catch((e) => {
         const detailedError = JSON.parse(e.message);
-        dispatch({ type: 'CATEGORIES_REQUEST_FAILURE', payload: { errorText: detailedError.text } });
-        dispatch({ type: 'CATALOG_REQUEST_FAILURE', payload: { errorText: detailedError.text } });
+        dispatch(categoriesRequestFailure(detailedError.text));
+        dispatch(catalogRequestFailure(detailedError.text));
       });
   }
 
@@ -54,10 +63,7 @@ export default function Catalog(props) {
   useEffect(() => {
     if (searchState.searchStatus) {
       getCatalog(categoriesState.activeCategory);
-      dispatch({
-        type: 'SEARCH_TEXT_STATUS',
-        payload: { search: searchState.search, searchStatus: false },
-      });
+      dispatch(searchTextStatus(searchState.search, false));
     }
   }, [searchState.searchStatus]);
 

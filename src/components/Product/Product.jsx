@@ -3,10 +3,16 @@ import PropTypes from 'prop-types';
 import { useHistory } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import cn from 'classnames';
-import fetchData from '../../api/fetch';
 import Preloader from '../Preloader/Preloader';
 import MessageDialog from '../MessageDialog/MessageDialog';
 import noimagesplash from '../../img/no-image-icon-23487.png';
+import {
+  productRequest,
+  productCount,
+  productSize,
+} from '../../actions/productAction';
+import { cartAddPosition } from '../../actions/cartAction';
+import { orderInit } from '../../actions/orderAction';
 
 export default function Product(props) {
   const { match } = props;
@@ -20,16 +26,7 @@ export default function Product(props) {
     : null;
 
   async function getProduct() {
-    dispatch({ type: 'PRODUCT_REQUEST' });
-    const urlCatalog = `${process.env.REACT_APP_SERVER_URL}items`;
-    const opts = { method: 'GET' };
-    fetchData(`${urlCatalog}/${id}`, opts).then((product) => {
-      dispatch({ type: 'PRODUCT_REQUEST_SUCCESS', payload: { product } });
-    }).catch((e) => {
-      const detailedError = JSON.parse(e.message);
-      if (detailedError.code === 404) dispatch({ type: 'PRODUCT_REQUEST_FAILURE', payload: { errorText: 'Товар недоступен для заказа', repeatAction: false } });
-      else dispatch({ type: 'PRODUCT_REQUEST_FAILURE', payload: { errorText: detailedError.text, repeatAction: true } });
-    });
+    dispatch(productRequest(id));
   }
 
   useEffect(() => {
@@ -37,15 +34,15 @@ export default function Product(props) {
   }, [dispatch, id]);
 
   const onIncrease = () => (productState.count >= 10
-    ? dispatch({ type: 'PRODUCT_COUNT', payload: { count: 10 } })
-    : dispatch({ type: 'PRODUCT_COUNT', payload: { count: productState.count + 1 } }));
+    ? dispatch(productCount(10))
+    : dispatch(productCount(productState.count + 1)));
 
   const onDecrease = () => (productState.count <= 1
-    ? dispatch({ type: 'PRODUCT_COUNT', payload: { count: 1 } })
-    : dispatch({ type: 'PRODUCT_COUNT', payload: { count: productState.count - 1 } }));
+    ? dispatch(productCount(1))
+    : dispatch(productCount(productState.count - 1)));
 
   const onSelectSize = (size) => {
-    dispatch({ type: 'PRODUCT_SIZE', payload: { size } });
+    dispatch(productSize(size));
   };
 
   const onAddCartPosition = () => {
@@ -56,8 +53,8 @@ export default function Product(props) {
       count: productState.count,
       price: productState.product.price,
     };
-    dispatch({ type: 'CART_ADD_POSITION', payload: { cartProduct } });
-    dispatch({ type: 'ORDER_INIT' });
+    dispatch(cartAddPosition(cartProduct));
+    dispatch(orderInit());
     history.push('/cart');
   };
 

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { searchFieldChange, searchTextStatus } from '../../actions/searchAction';
 
 export default function SearchForm() {
   const searchState = useSelector((state) => state.searchReducer);
@@ -7,12 +8,12 @@ export default function SearchForm() {
 
   const onInputChange = (event) => {
     const { name, value } = event.target;
-    dispatch({ type: 'SEARCH_FIELD_CHANGE', payload: { field: name, value } });
+    dispatch(searchFieldChange(name, value));
   };
 
   const onSubmit = (event) => {
     event.preventDefault();
-    dispatch({ type: 'SEARCH_TEXT_STATUS', payload: { search: searchState.search, searchStatus: true } });
+    dispatch(searchTextStatus(searchState.search, true));
   };
 
   return (

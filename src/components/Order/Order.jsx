@@ -3,7 +3,12 @@ import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import Preloader from '../Preloader/Preloader';
 import MessageDialog from '../MessageDialog/MessageDialog';
-import fetchData from '../../api/fetch';
+import {
+  orderRequest,
+  orderPhone,
+  orderAddress,
+  orderAgreement,
+} from '../../actions/orderAction';
 
 export default function Order() {
   const orderState = useSelector((state) => state.orderReducer);
@@ -11,32 +16,7 @@ export default function Order() {
   const dispatch = useDispatch();
 
   async function setOrder() {
-    dispatch({ type: 'ORDER_REQUEST' });
-    const urlOrder = `${process.env.REACT_APP_SERVER_URL}order`;
-    const opts = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        owner: {
-          phone: orderState.phone,
-          address: orderState.address,
-        },
-        items: cartState.cartData.map((item) => ({
-          id: item.id,
-          price: item.price,
-          count: item.count,
-        })),
-      }),
-    };
-    fetchData(urlOrder, opts).then(() => {
-      dispatch({ type: 'ORDER_REQUEST_SUCCESS' });
-      dispatch({ type: 'CART_LOCALSTORAGE_CLEAR' });
-    }).catch((e) => {
-      const detailedError = JSON.parse(e.message);
-      dispatch({ type: 'ORDER_REQUEST_FAILURE', payload: { errorText: detailedError.text } });
-    });
+    dispatch(orderRequest(orderState.phone, orderState.address, cartState.cartData));
   }
 
   const onSubmit = (event) => {
@@ -46,18 +26,18 @@ export default function Order() {
 
   const onChangePhone = (event) => {
     const { id, value } = event.target;
-    dispatch({ type: 'ORDER_PHONE', payload: { [id]: value } });
+    dispatch(orderPhone(id, value));
   };
 
   const onChangeAddress = (event) => {
     const { id, value } = event.target;
-    dispatch({ type: 'ORDER_ADDRESS', payload: { [id]: value } });
+    dispatch(orderAddress(id, value));
   };
 
   const onChangeAgreement = (event) => {
     const { id } = event.target;
     const status = event.target.checked;
-    dispatch({ type: 'ORDER_AGREEMENT', payload: { [id]: status } });
+    dispatch(orderAgreement(id, status));
   };
 
   return (
@@ -82,6 +62,7 @@ export default function Order() {
             <div className="form-group">
               <label htmlFor="phone">Телефон</label>
               <input
+                type="tel"
                 className="form-control"
                 id="phone"
                 name="phone"

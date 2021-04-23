@@ -3,6 +3,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import cn from 'classnames';
 import { useSelector, useDispatch } from 'react-redux';
+import { activeCategory } from '../../actions/categoriesAction';
 
 export default function Categories(props) {
   const { onChange } = props;
@@ -11,7 +12,7 @@ export default function Categories(props) {
 
   const onCategoryChange = (event, id) => {
     event.preventDefault();
-    dispatch({ type: 'ACTIVE_CATEGORY', payload: { activeCategory: id } });
+    dispatch(activeCategory(id));
     onChange(id);
   };
 

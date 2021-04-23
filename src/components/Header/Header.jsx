@@ -3,6 +3,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import { Link, NavLink, useHistory } from 'react-router-dom';
 import classnames from 'classnames';
 import logo from '../../img/header-logo.png';
+import { activeCategory } from '../../actions/categoriesAction';
+import { searchTextStatus } from '../../actions/searchAction';
 
 const DEFAULT_FORM_VALUE = {
   search: '',
@@ -23,8 +25,8 @@ export default function Header() {
   const onSearch = (event) => {
     event.preventDefault();
     if (form.search) {
-      dispatch({ type: 'ACTIVE_CATEGORY', payload: { activeCategory: 0 } });
-      dispatch({ type: 'SEARCH_TEXT_STATUS', payload: { search: form.search, searchStatus: true } });
+      dispatch(activeCategory(0));
+      dispatch(searchTextStatus(form.search, true));
       setForm(DEFAULT_FORM_VALUE);
       history.push('/catalog');
       setSearchVisible(false);

@@ -1,19 +1,13 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
+import { cartDeletePosition } from '../../actions/cartAction';
 
 export default function Cart() {
   const cartState = useSelector((state) => state.cartReducer);
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    localStorage.setItem('cartData', JSON.stringify(cartState.cartData));
-  }, [cartState.cartData]);
-
-  const onDeleteCartPosition = (id, size) => dispatch({
-    type: 'CART_DELETE_POSITION',
-    payload: { id, size },
-  });
+  const onDeleteCartPosition = (id, size) => dispatch(cartDeletePosition(id, size));
 
   return (
     <section className="cart">

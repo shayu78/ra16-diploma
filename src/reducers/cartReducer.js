@@ -15,30 +15,33 @@ export default function cartReducer(state = initialState, action) {
   switch (action.type) {
     case 'CART_ADD_POSITION': {
       const { cartProduct } = action.payload;
-      return {
-        ...state,
-        cartData:
-          (state.cartData.find(
-            (value) => (value.id === cartProduct.id && value.size === cartProduct.size),
-          ))
-            ? [...state.cartData.map(
-              (value) => (value.id === cartProduct.id && value.size === cartProduct.size
-                ? {
-                  ...value,
-                  count: value.count + cartProduct.count,
-                  price: (cartProduct.price < value.price) ? cartProduct.price : value.price,
-                }
-                : value),
-            )]
-            : [...state.cartData, cartProduct],
-      };
+      const updateState = (currState, product) => (
+        (currState.cartData.find(
+          (value) => (value.id === product.id && value.size === product.size),
+        ))
+          ? [...currState.cartData.map(
+            (value) => (value.id === product.id && value.size === product.size
+              ? {
+                ...value,
+                count: value.count + product.count,
+                price: (product.price < value.price) ? product.price : value.price,
+              }
+              : value),
+          )]
+          : [...currState.cartData, product]
+      );
+      const newState = updateState(state, cartProduct);
+      localStorage.setItem('cartData', JSON.stringify(newState));
+      return { ...state, cartData: newState };
     }
     case 'CART_DELETE_POSITION': {
       const { id, size } = action.payload;
-      return {
-        ...state,
-        cartData: [...state.cartData.filter((value) => !(value.id === id && value.size === size))],
-      };
+      const updateState = () => (
+        [...state.cartData.filter((value) => !(value.id === id && value.size === size))]
+      );
+      const newState = updateState();
+      localStorage.setItem('cartData', JSON.stringify(newState));
+      return { ...state, cartData: newState };
     }
     case 'CART_LOCALSTORAGE_CLEAR': {
       localStorage.removeItem('cartData');
